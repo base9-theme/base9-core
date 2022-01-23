@@ -1,7 +1,7 @@
 import Color from 'color';
 import _, { Dictionary } from 'lodash';
 import Mustache from 'mustache';
-import semantic from './semantic.json';
+import semantic from './semantic';
 
 class ColorWithFormat {
     constructor(public color: Color){}
