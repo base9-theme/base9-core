@@ -169,12 +169,12 @@ export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): N
     setColor("c6", colors[5]);
     setColor("c7", colors[6]);
 
-    map.set("red", map.get(`c${order[0]}`)!);
-    map.set("yellow", map.get(`c${order[1]}`)!);
-    map.set("green", map.get(`c${order[2]}`)!);
-    map.set("cyan", map.get(`c${order[3]}`)!);
-    map.set("blue", map.get(`c${order[4]}`)!);
-    map.set("magenta", map.get(`c${order[5]}`)!);
+    map.set("red", map.get(`c${order[0]+1}`)!);
+    map.set("yellow", map.get(`c${order[1]+1}`)!);
+    map.set("green", map.get(`c${order[2]+1}`)!);
+    map.set("cyan", map.get(`c${order[3]+1}`)!);
+    map.set("blue", map.get(`c${order[4]+1}`)!);
+    map.set("magenta", map.get(`c${order[5]+1}`)!);
     
     const backgroundMap = new Map<string, ColorWithFormat>();
     backgroundMap.set('o', background);
