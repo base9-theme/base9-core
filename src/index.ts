@@ -5,8 +5,8 @@ import semantic from './semantic';
 
 class ColorWithFormat {
     constructor(public color: Color){}
-    get hex() { return this.color.hex(); }
-    get hexbgr() { const x = this.color.hex(); return x[4]+x[5]+x[2]+x[3]+x[0]+x[1]; }
+    get hex() { return this.color.hex().substring(1); }
+    get hexbgr() { const x = this.color.hex().substring(1); return x[4]+x[5]+x[2]+x[3]+x[0]+x[1]; }
     get hexr() { return this.color.red  ().toString(16).padStart(2, "0"); }
     get hexg() { return this.color.green().toString(16).padStart(2, "0"); }
     get hexb() { return this.color.blue ().toString(16).padStart(2, "0"); }
