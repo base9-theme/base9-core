@@ -186,7 +186,7 @@ export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): N
     foregroundMap.set('o', foreground);
     foregroundMap.set('s', new ColorWithFormat(foreground.color.mix(background.color, cfg.r2)));
     foregroundMap.set('ss', new ColorWithFormat(foreground.color.mix(background.color, cfg.r1)));
-    map.set('foreground', backgroundMap);
+    map.set('foreground', foregroundMap);
     
     const todoMap = new Map<string, ColorWithFormat>();
     const todoBase = [
