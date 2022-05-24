@@ -5,6 +5,7 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "./lib",
+    "removeComments": true,
     "resolveJsonModule": true,
     "strict": true
   },
