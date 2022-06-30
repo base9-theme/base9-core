@@ -27,6 +27,17 @@ function mixRaw(a: number, b: number, ratio: number) {
   return a * (1 - ratio) + b * ratio;
 }
 
+/**
+ * Mix two color in lab space.
+ * Mix A,B linearly.
+ * Mix L in it's contrast scale defined by:
+ * https://www.w3.org/TR/WCAG20/#contrast-ratiodef
+ * @param c1 first color
+ * @param c2 second color
+ * @param ratio 0 produces c1, 1 produces c2, number out side of [0,1] will
+ * try to produce something make sense.
+ * @returns mixed color
+ */
 function customMix(c1: Color, c2: Color, ratio: number) {
   const c1xyz = rgb.xyz(c1.rgb().array() as RGB);
   const c2xyz = rgb.xyz(c2.rgb().array() as RGB);
@@ -44,32 +55,6 @@ function customMix(c1: Color, c2: Color, ratio: number) {
     mixRaw(c1lab[2], c2lab[2], ratio),
   ];
   return Color.lab(c3lab).rgb();
-}
-
-class ColorWithFormat {
-  constructor(public color: Color) {}
-
-  get hex() { return this.color.hex().substring(1); }
-
-  get hexbgr() { const x = this.hex; return x[4] + x[5] + x[2] + x[3] + x[0] + x[1]; }
-
-  get hexr() { return this.color.red().toString(16).padStart(2, '0'); }
-
-  get hexg() { return this.color.green().toString(16).padStart(2, '0'); }
-
-  get hexb() { return this.color.blue().toString(16).padStart(2, '0'); }
-
-  get decr() { return this.color.red().toString(); }
-
-  get decg() { return this.color.green().toString(); }
-
-  get decb() { return this.color.blue().toString(); }
-
-  get fracr() { return (this.color.red() / 255).toString(); }
-
-  get fracg() { return (this.color.green() / 255).toString(); }
-
-  get fracb() { return (this.color.blue() / 255).toString(); }
 }
 
 // a = "asd",)]
@@ -108,6 +93,7 @@ function iteratePermutations(f: (order: number[]) => void) {
       tmp = A[swapI];
       A[swapI] = A[i];
       A[i] = tmp;
+
       f(A);
 
       c[i] += 1;
@@ -119,25 +105,29 @@ function iteratePermutations(f: (order: number[]) => void) {
   }
 }
 
-const hues = [
-  Color('#FF0000'),
-  Color('#FFFF00'),
-  Color('#00FF00'),
-  Color('#00FFFF'),
-  Color('#0000FF'),
-  Color('#FF00FF'),
-];
+const ABSOLUTE_COLORS = [
+  {name: 'red', goal: Color('#FF0000')},
+  {name: 'yellow', goal: Color('#FFFF00')},
+  {name: 'green', goal: Color('#00FF00')},
+  {name: 'cyan', goal: Color('#00FFFF')},
+  {name: 'blue', goal: Color('#0000FF')},
+  {name: 'magenta', goal: Color('#FF00FF')},
+] as const;
 
-function getTrueColorOrder(colors: ColorWithFormat[]) {
+function getTrueColorOrder(colors: Color[]) {
   let min = Infinity;
   let minOrder: number[] = [];
   iteratePermutations((order) => {
-    const diff = difference(colors[order[0]].color, hues[0])
-            + difference(colors[order[1]].color, hues[1])
-            + difference(colors[order[2]].color, hues[2])
-            + difference(colors[order[3]].color, hues[3])
-            + difference(colors[order[4]].color, hues[4])
-            + difference(colors[order[5]].color, hues[5]);
+    //Do not consider orders that ignores primary or secondary color.
+    if(order[6] < 2) {
+      return;
+    }
+    const diff = difference(colors[order[0]], ABSOLUTE_COLORS[0].goal)
+            + difference(colors[order[1]], ABSOLUTE_COLORS[1].goal)
+            + difference(colors[order[2]], ABSOLUTE_COLORS[2].goal)
+            + difference(colors[order[3]], ABSOLUTE_COLORS[3].goal)
+            + difference(colors[order[4]], ABSOLUTE_COLORS[4].goal)
+            + difference(colors[order[5]], ABSOLUTE_COLORS[5].goal);
     if (min > diff) {
       min = diff;
       minOrder = order.slice();
@@ -157,7 +147,7 @@ type Config = {
       p125: number,
     }
 }
-export const defaultConfig: Config = {
+export const DEFAULT_CONFIG: Config = {
   semantic: semantic,
   shades: {
     p10: 0.1,
@@ -168,36 +158,56 @@ export const defaultConfig: Config = {
   },
 };
 
-type ColorMap = Map<string, ColorWithFormat|ColorMap>;
-export type NamedColors = { [k: string]: ColorWithFormat|NamedColors };
+export const FORMATS = {
+  hex(c: Color) { return c.hex().substring(1); },
 
-function isColorWithFormat(obj: Object): obj is ColorWithFormat {
-  return obj.constructor === ColorWithFormat;
+  hex_bgr(c: Color) { const x = c.hex().substring(1); return x[4] + x[5] + x[2] + x[3] + x[0] + x[1]; },
+
+  hex_r(c: Color) { return c.red().toString(16).padStart(2, '0'); },
+
+  hex_g(c: Color) { return c.green().toString(16).padStart(2, '0'); },
+
+  hex_b(c: Color) { return c.blue().toString(16).padStart(2, '0'); },
+
+  dec_r(c: Color) { return c.red().toString(); },
+
+  dec_g(c: Color) { return c.green().toString(); },
+
+  dec_b(c: Color) { return c.blue().toString(); },
+
+  frac_r(c: Color) { return (c.red() / 255).toString(); },
+
+  frac_g(c: Color) { return (c.green() / 255).toString(); },
+
+  frac_b(c: Color) { return (c.blue() / 255).toString(); },
 }
 
-function getMapByKeys(map: ColorMap, keys: string[]): ColorMap {
-  let mapIter = map;
-  _.each(keys.slice(0, keys.length - 1), (k, i) => {
-    if (mapIter.has(k)) {
-      const tmpIter = mapIter.get(k)!;
-      if (isColorWithFormat(tmpIter)) {
-        throw new Error(`${keys.slice(0, i)} is already a color when writing ${keys.join('.')}`);
-      }
-      mapIter = tmpIter;
+type ColorMap = Map<string, Color|ColorMap>;
+type NestedObj<T> = Dictionary<T|NestedObj<T>>;
+export type ColorData = NestedObj<Color>;
+export type FormattedColorData = {
+  [k in keyof typeof FORMATS]: NestedObj<string>;
+};
+
+function formatColorData(obj: ColorData, f: (c: Color) => string): NestedObj<string> {
+  return _.mapValues(obj, v => {
+    if(v instanceof Color) {
+      return f(v);
     } else {
-      const tmp = new Map<string, ColorMap|ColorWithFormat>();
-      mapIter.set(k, tmp);
-      mapIter = tmp;
+      return formatColorData(v, f);
     }
-  });
-  return mapIter;
+  })
 }
 
-function mapToObj(map: ColorMap): NamedColors {
+function colorDataToFormatted(obj: ColorData): FormattedColorData {
+  return _.mapValues(FORMATS, (f: (c: Color) => string) => formatColorData(obj, f));
+}
+
+function mapToObj(map: ColorMap): ColorData {
   const entries = _.map(
     Array.from(map.entries()),
-    ([k, v]): [string, NamedColors|ColorWithFormat] => {
-      if (isColorWithFormat(v)) {
+    ([k, v]): [string, ColorData|Color] => {
+      if (v instanceof Color) {
         return [k, v];
       }
       return [k, mapToObj(v)];
@@ -211,23 +221,22 @@ type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): NamedColors {
-  const paletteWithFormat = _.map(palette, (c) => new ColorWithFormat(c));
-  // const cfg = defaultConfig;
-  const background = paletteWithFormat[0];
-  const foreground = paletteWithFormat[1];
-  const colors = paletteWithFormat.slice(2);
+export function getColorData(palette: Color[], cfg: Config = DEFAULT_CONFIG): ColorData {
+  // const cfg = DEFAULT_CONFIG;
+  const background = palette[0];
+  const foreground = palette[1];
+  const colors = palette.slice(2);
   const order = getTrueColorOrder(colors);
   const map: ColorMap = new Map();
 
-  function setColor(key: string, c: ColorWithFormat) {
-    const m = new Map<string, ColorWithFormat>();
-    m.set('p10', new ColorWithFormat(customMix(background.color, c.color, cfg.shades.p10)));
-    m.set('p25', new ColorWithFormat(customMix(background.color, c.color, cfg.shades.p25)));
-    m.set('p50', new ColorWithFormat(customMix(background.color, c.color, cfg.shades.p50)));
-    m.set('p75', new ColorWithFormat(customMix(background.color, c.color, cfg.shades.p75)));
+  function setColor(key: string, c: Color) {
+    const m = new Map<string, Color>();
+    m.set('p10', customMix(background, c, cfg.shades.p10));
+    m.set('p25', customMix(background, c, cfg.shades.p25));
+    m.set('p50', customMix(background, c, cfg.shades.p50));
+    m.set('p75', customMix(background, c, cfg.shades.p75));
     m.set('p100', c);
-    m.set('p125', new ColorWithFormat(customMix(background.color, c.color, cfg.shades.p125)));
+    m.set('p125', new Color(customMix(background, c, cfg.shades.p125)));
     map.set(key, m);
   }
   map.set('background', background);
@@ -240,25 +249,25 @@ export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): N
   setColor('c6', colors[5]);
   setColor('c7', colors[6]);
 
-  map.set('red', map.get(`c${order[0] + 1}`)!);
-  map.set('yellow', map.get(`c${order[1] + 1}`)!);
-  map.set('green', map.get(`c${order[2] + 1}`)!);
-  map.set('cyan', map.get(`c${order[3] + 1}`)!);
-  map.set('blue', map.get(`c${order[4] + 1}`)!);
-  map.set('magenta', map.get(`c${order[5] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[0].name, map.get(`c${order[0] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[1].name, map.get(`c${order[1] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[2].name, map.get(`c${order[2] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[3].name, map.get(`c${order[3] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[4].name, map.get(`c${order[4] + 1}`)!);
+  map.set(ABSOLUTE_COLORS[5].name, map.get(`c${order[5] + 1}`)!);
 
-  const todoMap = new Map<string, ColorWithFormat>();
+  const todoMap = new Map<string, Color>();
   const todoBase = [
-    new ColorWithFormat(Color('#FFFFFF')), // white
-    new ColorWithFormat(Color('#FF0000')), // red
-    new ColorWithFormat(Color('#FFFF00')), // yellow
-    new ColorWithFormat(Color('#00FF00')), // green
-    new ColorWithFormat(Color('#00FFFF')), // cyan
-    new ColorWithFormat(Color('#0000FF')), // blue
-    new ColorWithFormat(Color('#FF00FF')), // magenta
-    new ColorWithFormat(Color('#FF8000')), // orange
-    new ColorWithFormat(Color('#000000')), // black
-    new ColorWithFormat(Color('#808080')), // gray
+    Color('#FFFFFF'), // white
+    Color('#FF0000'), // red
+    Color('#FFFF00'), // yellow
+    Color('#00FF00'), // green
+    Color('#00FFFF'), // cyan
+    Color('#0000FF'), // blue
+    Color('#FF00FF'), // magenta
+    Color('#FF8000'), // orange
+    Color('#000000'), // black
+    Color('#808080'), // gray
   ];
   _.each(todoBase, (c, i) => {
     todoMap.set(`base${i}`, c);
@@ -271,8 +280,11 @@ export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): N
   function iterateSemantic(s: Semantic, currentMap: ColorMap) {
     _.each(Object.entries(s), ([key, value]) => {
       if (isString(value)) {
+        if(value === "BUILT_IN") {
+          return;
+        }
         const values = value.split('.');
-        let ptr: ColorMap|ColorWithFormat = map;
+        let ptr: ColorMap|Color= map;
         _.each(values, (v) => { ptr = (ptr as ColorMap).get(v)!; });
         currentMap.set(key, ptr);
       } else {
@@ -287,7 +299,7 @@ export function getNamedColors(palette: Color[], cfg: Config = defaultConfig): N
   return mapToObj(map);
 }
 
-export function render(template: string, cs: Color[], cfg: Config = defaultConfig) {
-  const namedColors = getNamedColors(cs, cfg);
-  return Mustache.render(template, namedColors);
+export function render(template: string, cs: Color[], cfg: Config = DEFAULT_CONFIG) {
+  const colorObj = getColorData(cs, cfg);
+  return Mustache.render(template, colorDataToFormatted(colorObj));
 }

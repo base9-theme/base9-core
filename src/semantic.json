@@ -1,5 +1,31 @@
 {
-    "c0": "foreground",
+    "background": "BUILT_IN",
+    "foreground": "BUILT_IN",
+    "c1": "BUILT_IN",
+    "c2": "BUILT_IN",
+    "c3": "BUILT_IN",
+    "c4": "BUILT_IN",
+    "c5": "BUILT_IN",
+    "c6": "BUILT_IN",
+    "c7": "BUILT_IN",
+    "red": "BUILT_IN",
+    "green": "BUILT_IN",
+    "yellow": "BUILT_IN",
+    "blue": "BUILT_IN",
+    "magenta": "BUILT_IN",
+    "cyan": "BUILT_IN",
+
+    "base9": {
+      "0": "background",
+      "1": "foreground.p100",
+      "2": "c1.p100",
+      "3": "c2.p100",
+      "4": "c3.p100",
+      "5": "c4.p100",
+      "6": "c5.p100",
+      "7": "c6.p100",
+      "8": "c7.p100"
+    },
     "ansi": {
         "black": "background",
         "red": "red.p100",
@@ -35,70 +61,43 @@
         "f": "foreground.p100"
     },
 
-    "symbol": "c1", // highlight operator and special characters.
-    "tag": "c2", // TODO add description
-    "string": "c3", // commonly used
-    "function": "c4",
-    "secondary": "c5", // need special attention, should be only for small portion of the ui.
-    "primary": "c6", // main color in ui
+    "c0": "foreground",
+
+    // syntax highlighting
+    "operator": "c6",
+    "parameter": "c5",
+    "string": "c4",
+    "function": "c3",
     "keyword": "c7",
-    // aliases in absolute color
+    "static": "c1",
+    "decorator": "c3",
+    "type": "c1",
+    "literal": "c3",
+    "variable": "foreground",
+    "field": "c2", // aka instance variable
+    "constant": "foreground",
+    "escape": "c6",
+    "property_value": "c4",
+
+    // UI
+    "primary": "c1", // main color in ui
+    "secondary": "c2", // need special attention, should be only for small portion of the ui.
+    "selection": "c1",
+    "comment": "foreground",
+    "cursor": "foreground",
+    "link": "c2", // url or links in ui
+    "highlight": "c1", // Same as Secondary, for ui hovering and other types of highlight
+    "match": "c5", // search result
+    "divider": "foreground",
+    "scroll": "foreground",
+    "line_number": "foreground",
+    "quote": "c2", // Same as secondary. for displaying quotes in a document or ui context
+    "fold": "foreground", // Something that can fold/expand, or a folder.
+    "debug": "c3", // anything related to debugging
+
+    // absolute color
     "error": "red",
     "good": "green",
     "warning": "yellow",
-    "info": "blue",
-    // used in UI
-    "ordinary": "c5", // Same as secondary
-    "selection": {
-        "background": "c6.p25", // Same as primary, when user selects something
-    },
-    "comment": "foreground.p75",
-    "cursor": {
-        "background": "foreground.p100",
-        "foreground": "background"
-    },
-    "search": {
-        "background": "foreground.p25" //TODO ???
-    },
-    "link": "blue", // url or links in ui
-    "highlight": "c5", // Same as Secondary, for ui hovering and other types of highlight
-    "match": "c2",
-    "text_selection": {
-        "background": "c6.p50", //TODO
-    },
-    "separator": {
-        "normal": "foreground.p25",
-        "highlight": "foreground.p50"
-    },
-    "scroll": "foreground", //TODO
-    "drag": { // when user dragging a ui component
-        "background": "foreground.p25"
-    },
-    "line_number": { //TODO
-        "current": "foreground.p75",
-        "others": "foreground.p50"
-    },
-    // "line_number.o": "foreground.o",
-    // "line_number.s": "foreground.s",
-    // "line_number.m": "foreground.ss",
-    // "line_number.b": "background.ss",
-    "quote": "c5", // Same as secondary. for displaying quotes in a document or ui context
-    "fold": {
-        "background": "foreground.p10",
-    },
-    //TODO
-    // "nontext.o": "foreground.o",
-    // "nontext.s": "foreground.s",
-
-    // not in UI, only in syntax highlighting
-    "static": "c6",
-    "decorator": "c4",
-    "class": "c6",
-    "literal": "c4",
-    "variable": "foreground",
-    "variable_instance": "c5",
-    "constant": "foreground",
-    // not yet used
-    "folder": "cyan", //TODO
-    "debug": "red" // anything related to debugging
+    "info": "blue"
 }

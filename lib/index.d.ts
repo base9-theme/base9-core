@@ -14,21 +14,6 @@ export declare type ColorPalette = [
 export declare const PALETTE_REGEX: RegExp;
 export declare function toPaletteString(colors: ColorPalette): string;
 export declare function fromPaletteString(palette: string): ColorPalette | undefined;
-declare class ColorWithFormat {
-    color: Color;
-    constructor(color: Color);
-    get hex(): string;
-    get hexbgr(): string;
-    get hexr(): string;
-    get hexg(): string;
-    get hexb(): string;
-    get decr(): string;
-    get decg(): string;
-    get decb(): string;
-    get fracr(): string;
-    get fracg(): string;
-    get fracb(): string;
-}
 declare type Semantic = Dictionary<string | Semantic>;
 declare type Config = {
     semantic: Semantic;
@@ -40,10 +25,25 @@ declare type Config = {
         p125: number;
     };
 };
-export declare const defaultConfig: Config;
-export declare type NamedColors = {
-    [k: string]: ColorWithFormat | NamedColors;
+export declare const DEFAULT_CONFIG: Config;
+export declare const FORMATS: {
+    hex(c: Color): string;
+    hex_bgr(c: Color): string;
+    hex_r(c: Color): string;
+    hex_g(c: Color): string;
+    hex_b(c: Color): string;
+    dec_r(c: Color): string;
+    dec_g(c: Color): string;
+    dec_b(c: Color): string;
+    frac_r(c: Color): string;
+    frac_g(c: Color): string;
+    frac_b(c: Color): string;
 };
-export declare function getNamedColors(palette: Color[], cfg?: Config): NamedColors;
+declare type NestedObj<T> = Dictionary<T | NestedObj<T>>;
+export declare type ColorData = NestedObj<Color>;
+export declare type FormattedColorData = {
+    [k in keyof typeof FORMATS]: NestedObj<string>;
+};
+export declare function getColorData(palette: Color[], cfg?: Config): ColorData;
 export declare function render(template: string, cs: Color[], cfg?: Config): string;
 export {};
