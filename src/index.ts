@@ -1,7 +1,7 @@
 import Color from 'color';
 import _, { Dictionary, isString } from 'lodash';
 import Mustache from 'mustache';
-import { rgb, xyz } from 'color-convert';
+import { rgb, xyz, lab } from 'color-convert';
 import type { RGB } from 'color-convert/conversions';
 import semantic from './semantic.json';
 
@@ -39,22 +39,22 @@ function mixRaw(a: number, b: number, ratio: number) {
  * @returns mixed color
  */
 function customMix(c1: Color, c2: Color, ratio: number) {
-  const c1xyz = rgb.xyz(c1.rgb().array() as RGB);
-  const c2xyz = rgb.xyz(c2.rgb().array() as RGB);
-  const c1lab = xyz.lab(c1xyz);
-  const c2lab = xyz.lab(c2xyz);
+  const c1xyz = rgb.xyz.raw(c1.rgb().array() as RGB);
+  const c2xyz = rgb.xyz.raw(c2.rgb().array() as RGB);
+  const c1lab = xyz.lab.raw(c1xyz);
+  const c2lab = xyz.lab.raw(c2xyz);
   // color convert uses 0-100 for xyz.
   const c1contrast = Math.log(c1xyz[1] + 5);
   const c2contrast = Math.log(c2xyz[1] + 5);
   const c3contrast = mixRaw(c1contrast, c2contrast, ratio);
-  const c3y = _.clamp(Math.exp(c3contrast) - 5, 0, 100);
-  const c3l = xyz.lab([0, c3y, 0])[0];
+  const c3y = Math.exp(c3contrast) - 5;
+  const c3l = xyz.lab.raw([0, c3y, 0])[0];
   const c3lab = [
     c3l,
     mixRaw(c1lab[1], c2lab[1], ratio),
     mixRaw(c1lab[2], c2lab[2], ratio),
   ];
-  return Color.lab(c3lab).rgb();
+  return Color.rgb(lab.rgb(c3lab));
 }
 
 // a = "asd",)]
@@ -159,35 +159,29 @@ export const DEFAULT_CONFIG: Config = {
 };
 
 export const FORMATS = {
-  hex(c: Color) { return c.hex().substring(1); },
+  hex(c: Color) { return c.hex().substring(1).toLowerCase(); },
 
   hex_bgr(c: Color) { const x = c.hex().substring(1); return x[4] + x[5] + x[2] + x[3] + x[0] + x[1]; },
 
-  hex_r(c: Color) { return c.red().toString(16).padStart(2, '0'); },
+  hex_r(c: Color) { return c.hex().substring(1,3).toLocaleLowerCase(); },
+  hex_g(c: Color) { return c.hex().substring(3,5).toLocaleLowerCase(); },
+  hex_b(c: Color) { return c.hex().substring(5,7).toLocaleLowerCase(); },
+  int_r(c: Color) { return c.red().toString(); },
+  int_g(c: Color) { return c.green().toString(); },
+  int_b(c: Color) { return c.blue().toString(); },
+  dec_r(c: Color) { return (c.red() / 255).toString(); },
 
-  hex_g(c: Color) { return c.green().toString(16).padStart(2, '0'); },
+  dec_g(c: Color) { return (c.green() / 255).toString(); },
 
-  hex_b(c: Color) { return c.blue().toString(16).padStart(2, '0'); },
-
-  dec_r(c: Color) { return c.red().toString(); },
-
-  dec_g(c: Color) { return c.green().toString(); },
-
-  dec_b(c: Color) { return c.blue().toString(); },
-
-  frac_r(c: Color) { return (c.red() / 255).toString(); },
-
-  frac_g(c: Color) { return (c.green() / 255).toString(); },
-
-  frac_b(c: Color) { return (c.blue() / 255).toString(); },
+  dec_b(c: Color) { return (c.blue() / 255).toString(); },
 }
 
 type ColorMap = Map<string, Color|ColorMap>;
 type NestedObj<T> = Dictionary<T|NestedObj<T>>;
 export type ColorData = NestedObj<Color>;
-export type FormattedColorData = {
-  [k in keyof typeof FORMATS]: NestedObj<string>;
-};
+// export type FormattedColorData = {
+//   [k in keyof typeof FORMATS]: NestedObj<string>;
+// };
 
 function formatColorData(obj: ColorData, f: (c: Color) => string): NestedObj<string> {
   return _.mapValues(obj, v => {
@@ -199,7 +193,15 @@ function formatColorData(obj: ColorData, f: (c: Color) => string): NestedObj<str
   })
 }
 
-function colorDataToFormatted(obj: ColorData): FormattedColorData {
+export function colorDataToFormatted(obj: ColorData): NestedObj<string> {
+  return _.mapValues(obj, v => {
+    if(v instanceof Color) {
+      return _.mapValues(FORMATS, f => f(v));
+    } else {
+      return colorDataToFormatted(v);
+    }
+  });
+
   return _.mapValues(FORMATS, (f: (c: Color) => string) => formatColorData(obj, f));
 }
 
@@ -301,5 +303,6 @@ export function getColorData(palette: Color[], cfg: Config = DEFAULT_CONFIG): Co
 
 export function render(template: string, cs: Color[], cfg: Config = DEFAULT_CONFIG) {
   const colorObj = getColorData(cs, cfg);
+  const data = colorDataToFormatted(colorObj)
   return Mustache.render(template, colorDataToFormatted(colorObj));
 }

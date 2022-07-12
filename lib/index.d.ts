@@ -32,18 +32,16 @@ export declare const FORMATS: {
     hex_r(c: Color): string;
     hex_g(c: Color): string;
     hex_b(c: Color): string;
+    int_r(c: Color): string;
+    int_g(c: Color): string;
+    int_b(c: Color): string;
     dec_r(c: Color): string;
     dec_g(c: Color): string;
     dec_b(c: Color): string;
-    frac_r(c: Color): string;
-    frac_g(c: Color): string;
-    frac_b(c: Color): string;
 };
 declare type NestedObj<T> = Dictionary<T | NestedObj<T>>;
 export declare type ColorData = NestedObj<Color>;
-export declare type FormattedColorData = {
-    [k in keyof typeof FORMATS]: NestedObj<string>;
-};
+export declare function colorDataToFormatted(obj: ColorData): NestedObj<string>;
 export declare function getColorData(palette: Color[], cfg?: Config): ColorData;
 export declare function render(template: string, cs: Color[], cfg?: Config): string;
 export {};

@@ -66,13 +66,13 @@
     // syntax highlighting
     "operator": "c6",
     "parameter": "c5",
-    "string": "c4",
-    "function": "c3",
+    "string": "c3",
+    "function": "c4",
     "keyword": "c7",
     "static": "c1",
     "decorator": "c3",
     "type": "c1",
-    "literal": "c3",
+    "literal": "c4",
     "variable": "foreground",
     "field": "c2", // aka instance variable
     "constant": "foreground",
@@ -82,18 +82,18 @@
     // UI
     "primary": "c1", // main color in ui
     "secondary": "c2", // need special attention, should be only for small portion of the ui.
-    "selection": "c1",
+    "selection": "c2",
     "comment": "foreground",
     "cursor": "foreground",
-    "link": "c2", // url or links in ui
+    "link": "c1", // url or links in ui
     "highlight": "c1", // Same as Secondary, for ui hovering and other types of highlight
-    "match": "c5", // search result
+    "match": "c4", // search result
     "divider": "foreground",
     "scroll": "foreground",
     "line_number": "foreground",
-    "quote": "c2", // Same as secondary. for displaying quotes in a document or ui context
+    "quote": "c3", // Same as string. for displaying quotes in a document or ui context
     "fold": "foreground", // Something that can fold/expand, or a folder.
-    "debug": "c3", // anything related to debugging
+    "debug": "c5", // anything related to debugging
 
     // absolute color
     "error": "red",
