@@ -1,4 +1,4 @@
 # Base9 Core Library
-It has the source of truth for base9 theme generation.
+DEPRECATED
 
-Minor version will change when semantics change.
+Use base9-builder instead.

@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/base9-theme/base9-core#readme",
   "devDependencies": {
-    "js-yaml": "^4.1.0",
     "typescript": "^4.5.4"
   },
   "dependencies": {
